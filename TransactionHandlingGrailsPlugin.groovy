@@ -1,21 +1,51 @@
+/*
+* Copyright 2010-2011 the original author or authors.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+import grails.util.GrailsNameUtils
+ 
+import java.lang.reflect.Modifier
+
+import org.springframework.transaction.TransactionDefinition
+import org.springframework.transaction.support.TransactionCallback
+import org.springframework.transaction.support.TransactionTemplate
+
+/**
+* @author Daniel Henrique Alves Lima
+*/
 class TransactionHandlingGrailsPlugin {
     // the plugin version
-    def version = "0.1"
+    def version = "0.1.1"
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "1.3.7 > *"
+    def grailsVersion = "1.2.5 > *"
     // the other plugins this plugin depends on
     def dependsOn = [:]
+    def loadAfter = ['hibernate']
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
-            "grails-app/views/error.gsp"
+            'grails-app/**/*',
+            'web-app/**/*',
+            'scripts/**/Eclipse.groovy'
     ]
 
     // TODO Fill in these fields
-    def author = "Your name"
-    def authorEmail = ""
-    def title = "Plugin summary/headline"
+    def author = "Daniel Henrique Alves Lima"
+    def authorEmail = "email_daniel_h@yahoo.com.br"
+    def title = "Plugin for advanced management of transactions in Grails"
     def description = '''\\
-Brief description of the plugin.
+Plugin for advanced management of transactions in Grails.
+Possibly a backport of http://jira.grails.org/browse/GRAILS-7093. 
 '''
 
     // URL to the plugin's documentation
@@ -30,7 +60,110 @@ Brief description of the plugin.
     }
 
     def doWithDynamicMethods = { ctx ->
-        // TODO Implement registering dynamic methods to classes (optional)
+
+        def constantModifier = Modifier.FINAL | Modifier.STATIC | Modifier.PUBLIC
+        def constantPrefixes = new LinkedHashSet()
+        def constantMappings = [:]
+        for (field in TransactionTemplate.class.fields) {
+            if ((field.modifiers & constantModifier) == constantModifier && field.name.startsWith('PREFIX_')) {
+                String value = (String) field.get(null)
+                value = value.toUpperCase()
+                constantPrefixes << value
+                constantMappings[value] = [:]
+            }
+        }
+        
+        for (field in TransactionDefinition.class.fields) {
+            if ((field.modifiers & constantModifier) == constantModifier) {
+                for (prefix in constantPrefixes) {
+                    if (field.name.startsWith(prefix)) {
+                        def key = field.name.replace(prefix, '').replace('_', '-').toLowerCase()
+                        key = GrailsNameUtils.getPropertyNameForLowerCaseHyphenSeparatedName(key)
+                        constantMappings[prefix][key] = [name: field.name, value: field.get(null)]
+                    }
+                }
+            }
+        }
+
+        Map map = [:]
+        for (e in constantMappings.entrySet()) {
+            String key = e.key.toLowerCase()
+            key = key.substring(0, key.length() - 1)
+            map[key] = e.value
+        }
+        constantMappings = map
+
+        println "constantMappings ${constantMappings}"
+
+        Map propertyMappings = [propagation: [name: 'propagationBehaviorName', value: 'name'], 
+                                isolation: [name: 'isolationLevelName', value: 'name'], 
+                                timeout: [name: 'timeout', value: 'value']]
+
+        Map withTrxDefaults = [propagation: 'required']
+        Map withNewTrxDefaults = [propagation: 'requiresNew']
+
+        Closure withTrxImpl = {Map defaults, Map properties, Closure callable ->
+            if (properties != Collections.EMPTY_MAP) {
+                Map props = new LinkedHashMap(defaults)
+                props.putAll(properties)
+                properties = props
+            } else {
+                properties = defaults
+            }
+
+            println "properties ${properties}"
+            
+            TransactionTemplate template = new TransactionTemplate(ctx.getBean('transactionManager'))
+            
+            for (prop in properties) {
+                String name = prop.key
+                Object value = prop.value
+                
+                Map propMapping = propertyMappings[name]
+
+                String newName = propMapping?.name
+                Object newValue = constantMappings[name]
+                
+                if (value != null && !(value instanceof CharSequence)) {
+                    newValue = null
+                }
+                
+                if (newValue != null && value != null) {
+                    newValue = newValue[value.toString()]
+                    if (newValue != null) {
+                        newValue = newValue[propMapping?.value]
+                    }
+                }                    
+                
+                name = (newName != null)? newName : name
+                value = (newValue != null)? newValue: value
+
+                println "${name}=${value}"   
+                template[name] = value
+            }
+            
+            template.execute(
+                {status ->
+                    callable.call(status)
+                } as TransactionCallback)
+        }
+
+        Closure withTrx = {Map properties = Collections.EMPTY_MAP, Closure callable ->
+            withTrxImpl(withTrxDefaults, properties, callable)
+        }
+        Closure withNewTrx = {Map properties = Collections.EMPTY_MAP, Closure callable ->
+            withTrxImpl(withNewTrxDefaults, properties, callable)
+        }
+
+        for (domainClass in application.domainClasses) {
+            Class clazz = domainClass.clazz
+
+            // Force the lazy init of GORM dynamic methods
+            Closure c = clazz.&withTransaction
+
+            clazz.metaClass.'static'.withTransaction = withTrx
+            clazz.metaClass.'static'.withNewTransaction = withNewTrx
+        }
     }
 
     def doWithApplicationContext = { applicationContext ->
