@@ -62,16 +62,8 @@ Possibly a backport of http://jira.grails.org/browse/GRAILS-7093.
     def doWithDynamicMethods = { ctx ->
 
         def constantModifier = Modifier.FINAL | Modifier.STATIC | Modifier.PUBLIC
-        def constantPrefixes = new LinkedHashSet()
-        def constantMappings = [:]
-        for (field in TransactionTemplate.class.fields) {
-            if ((field.modifiers & constantModifier) == constantModifier && field.name.startsWith('PREFIX_')) {
-                String value = (String) field.get(null)
-                value = value.toUpperCase()
-                constantPrefixes << value
-                constantMappings[value] = [:]
-            }
-        }
+        def constantPrefixes = new LinkedHashSet(['PROPAGATION_', 'ISOLATION_', 'TIMEOUT_'])
+        def constantMappings = ['PROPAGATION_': [:], 'ISOLATION_': [:], 'TIMEOUT_': [:]]
         
         for (field in TransactionDefinition.class.fields) {
             if ((field.modifiers & constantModifier) == constantModifier) {
