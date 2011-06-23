@@ -14,9 +14,10 @@
 * limitations under the License.
 */
 import grails.util.GrailsNameUtils
- 
+
 import java.lang.reflect.Modifier
 
+import org.apache.log4j.Logger
 import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.support.TransactionCallback
 import org.springframework.transaction.support.TransactionTemplate
@@ -25,6 +26,8 @@ import org.springframework.transaction.support.TransactionTemplate
 * @author Daniel Henrique Alves Lima
 */
 class TransactionHandlingGrailsPlugin {
+    private final Logger log = Logger.getLogger(getClass())
+    
     // the plugin version
     def version = "0.1.1"
     // the version or versions of Grails the plugin is designed for
@@ -62,31 +65,25 @@ Possibly a backport of http://jira.grails.org/browse/GRAILS-7093.
     def doWithDynamicMethods = { ctx ->
 
         def constantModifier = Modifier.FINAL | Modifier.STATIC | Modifier.PUBLIC
-        def constantPrefixes = new LinkedHashSet(['PROPAGATION_', 'ISOLATION_', 'TIMEOUT_'])
-        def constantMappings = ['PROPAGATION_': [:], 'ISOLATION_': [:], 'TIMEOUT_': [:]]
-        
+        /* [transactionTemplatePropertyAlias: [transactionDefinitionConstantAlias: [name: constantName, value: constantValue]]] */
+        Map constantMappings = [propagation: [:], isolation: [:], timeout: [:]]
+        Set constantPrefixes = new LinkedHashSet(constantMappings.keySet().collect {it.toUpperCase()})
+                
         for (field in TransactionDefinition.class.fields) {
             if ((field.modifiers & constantModifier) == constantModifier) {
                 for (prefix in constantPrefixes) {
                     if (field.name.startsWith(prefix)) {
                         def key = field.name.replace(prefix, '').replace('_', '-').toLowerCase()
                         key = GrailsNameUtils.getPropertyNameForLowerCaseHyphenSeparatedName(key)
-                        constantMappings[prefix][key] = [name: field.name, value: field.get(null)]
+                        constantMappings[prefix.toLowerCase()][key] = [name: field.name, value: field.get(null)]
                     }
                 }
             }
         }
 
-        Map map = [:]
-        for (e in constantMappings.entrySet()) {
-            String key = e.key.toLowerCase()
-            key = key.substring(0, key.length() - 1)
-            map[key] = e.value
-        }
-        constantMappings = map
+        log.debug("constantMappings ${constantMappings}")
 
-        println "constantMappings ${constantMappings}"
-
+        /* [transactionTemplatePropertyAlias: [name: transactionTemplatePropertyName, value: transactionDefinitionConstantNameOrValue]] */
         Map propertyMappings = [propagation: [name: 'propagationBehaviorName', value: 'name'], 
                                 isolation: [name: 'isolationLevelName', value: 'name'], 
                                 timeout: [name: 'timeout', value: 'value']]
@@ -103,7 +100,7 @@ Possibly a backport of http://jira.grails.org/browse/GRAILS-7093.
                 properties = defaults
             }
 
-            println "properties ${properties}"
+            log.debug("transaction properties ${properties}")
             
             TransactionTemplate template = new TransactionTemplate(ctx.getBean('transactionManager'))
             
@@ -117,12 +114,13 @@ Possibly a backport of http://jira.grails.org/browse/GRAILS-7093.
                 Object newValue = constantMappings[name]
                 
                 if (value != null && !(value instanceof CharSequence)) {
+                    // shortcut for non-text values
                     newValue = null
                 }
                 
                 if (newValue != null && value != null) {
                     newValue = newValue[value.toString()]
-                    if (newValue != null) {
+                    if (newValue != null) { // Invalid property names produce null values
                         newValue = newValue[propMapping?.value]
                     }
                 }                    
@@ -130,7 +128,7 @@ Possibly a backport of http://jira.grails.org/browse/GRAILS-7093.
                 name = (newName != null)? newName : name
                 value = (newValue != null)? newValue: value
 
-                println "${name}=${value}"   
+                log.debug("${name}=${value}")   
                 template[name] = value
             }
             
