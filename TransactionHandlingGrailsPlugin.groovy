@@ -45,7 +45,7 @@ class TransactionHandlingGrailsPlugin {
     // TODO Fill in these fields
     def author = "Daniel Henrique Alves Lima"
     def authorEmail = "email_daniel_h@yahoo.com.br"
-    def title = "Plugin for advanced management of transactions in Grails"
+    def title = 'Grails Transaction Handling Plugin'
     def description = '''\\
 Plugin for advanced management of transactions in Grails.
 Possibly a backport of http://jira.grails.org/browse/GRAILS-7093. 
