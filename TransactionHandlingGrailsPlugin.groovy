@@ -37,12 +37,13 @@ class TransactionHandlingGrailsPlugin {
     def observe = ['hibernate']
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
-            'grails-app/controllers/*',
-            'grails-app/domain/*',
-            'grails-app/i18n/*',
-            'grails-app/services/*',
-            'grails-app/taglib/*',
-            'grails-app/views/*',
+            'grails-app/controllers/**/',
+            'grails-app/domain/**/*',
+            'grails-app/i18n/**/*',
+            'grails-app/services/**/*',
+            'grails-app/taglib/**/*',
+            'grails-app/views/**/*',
+            'test/**/*',
             'web-app/**/*',
             'scripts/**/Eclipse.groovy'
     ]
