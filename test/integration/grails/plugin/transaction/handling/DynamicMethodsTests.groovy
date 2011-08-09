@@ -266,6 +266,57 @@ class DynamicMethodsTests extends GroovyTestCase {
     }
 
     
+    void testWithNewTransactionTemplateWithDefaults() {
+        try {
+
+            TransactionTemplate template = null
+
+            TransactionTemplate.metaClass.constructor = {PlatformTransactionManager trMgr ->
+                template = new TransactionTemplate()
+                template.transactionManager =  trMgr
+                template
+            }
+
+            TestUser.withNewTransaction {
+                println "template ${template}"
+                assertEquals template.propagationBehavior, TransactionDefinition.PROPAGATION_REQUIRES_NEW
+                assertEquals template.isolationLevel, TransactionDefinition.ISOLATION_DEFAULT
+                assertEquals template.timeout, TransactionDefinition.TIMEOUT_DEFAULT
+                assertEquals template.readOnly, false
+            }
+            
+            
+            
+            pluginConfig.programmatic.defaults.readOnly = true
+            pluginConfig.programmatic.defaults.propagation = 'supports'
+            pluginConfig.programmatic.defaults.propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
+            pluginConfig.programmatic.defaults.propagationBehaviorName = 'PROPAGATION_NEVER'
+            pluginConfig.programmatic.defaults.isolation = 'serializable'
+            reloadDynamicMethods()
+            
+            TestUser.withNewTransaction {
+                println "template ${template}"
+                assertEquals template.propagationBehavior, TransactionDefinition.PROPAGATION_REQUIRES_NEW
+                assertEquals template.isolationLevel, TransactionDefinition.ISOLATION_SERIALIZABLE
+                assertEquals template.timeout, TransactionDefinition.TIMEOUT_DEFAULT
+                assertEquals template.readOnly, true
+            }
+            
+            TestUser.withNewTransaction(propagation: 'supports') {
+                println "template ${template}"
+                assertEquals template.propagationBehavior, TransactionDefinition.PROPAGATION_SUPPORTS
+                assertEquals template.isolationLevel, TransactionDefinition.ISOLATION_SERIALIZABLE
+                assertEquals template.timeout, TransactionDefinition.TIMEOUT_DEFAULT
+                assertEquals template.readOnly, true
+            }
+        } finally {
+            this.getPluginConfig(true)
+            this.reloadDynamicMethods()
+        }
+    }
+        
+    
+    
     private void reloadDynamicMethods() {
         this.dynamicMethods.doWith(grailsApplication.mainContext, grailsApplication)
     }
