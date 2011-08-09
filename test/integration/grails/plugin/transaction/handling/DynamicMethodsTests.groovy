@@ -210,7 +210,7 @@ class DynamicMethodsTests extends GroovyTestCase {
 
             
             
-            pluginConfig.programmatic.defaults.timeout = 234
+            pluginConfig.programmatic.timeout = 234
             reloadDynamicMethods()
 
             TestUser.withTransaction {
@@ -223,8 +223,8 @@ class DynamicMethodsTests extends GroovyTestCase {
             
             
             
-            pluginConfig.programmatic.defaults.readOnly = true
-            pluginConfig.programmatic.defaults.isolation = 'readUncommitted'
+            pluginConfig.programmatic.readOnly = true
+            pluginConfig.programmatic.isolation = 'readUncommitted'
             reloadDynamicMethods()
 
             TestUser.withTransaction {
@@ -236,10 +236,10 @@ class DynamicMethodsTests extends GroovyTestCase {
             }
             
             
-            pluginConfig.programmatic.defaults.readOnly = false
-            pluginConfig.programmatic.defaults.propagation = 'supports'
-            pluginConfig.programmatic.defaults.propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
-            pluginConfig.programmatic.defaults.propagationBehaviorName = 'PROPAGATION_NEVER'
+            pluginConfig.programmatic.readOnly = false
+            pluginConfig.programmatic.propagation = 'supports'
+            pluginConfig.programmatic.propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
+            pluginConfig.programmatic.propagationBehaviorName = 'PROPAGATION_NEVER'
             reloadDynamicMethods()
             
             TestUser.withTransaction {
@@ -287,11 +287,11 @@ class DynamicMethodsTests extends GroovyTestCase {
             
             
             
-            pluginConfig.programmatic.defaults.readOnly = true
-            pluginConfig.programmatic.defaults.propagation = 'supports'
-            pluginConfig.programmatic.defaults.propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
-            pluginConfig.programmatic.defaults.propagationBehaviorName = 'PROPAGATION_NEVER'
-            pluginConfig.programmatic.defaults.isolation = 'serializable'
+            pluginConfig.programmatic.readOnly = true
+            pluginConfig.programmatic.propagation = 'supports'
+            pluginConfig.programmatic.propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
+            pluginConfig.programmatic.propagationBehaviorName = 'PROPAGATION_NEVER'
+            pluginConfig.programmatic.isolation = 'serializable'
             reloadDynamicMethods()
             
             TestUser.withNewTransaction {

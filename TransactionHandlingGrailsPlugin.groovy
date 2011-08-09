@@ -14,14 +14,17 @@
 * limitations under the License.
 */
 import grails.plugin.transaction.handling.GroovyDynamicMethods
+import grails.plugin.transaction.handling.TransactionManagerPostProcessor
 
-import org.apache.log4j.Logger
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
 
 /**
 * @author Daniel Henrique Alves Lima
 */
 class TransactionHandlingGrailsPlugin {
-    private final Logger log = Logger.getLogger(getClass())
+    
+    private final Log log = LogFactory.getLog(getClass())
     private final GroovyDynamicMethods dynamicMethods = new GroovyDynamicMethods(log)
     
     // the plugin version
@@ -56,7 +59,9 @@ Possibly a backport of http://jira.grails.org/browse/GRAILS-7093.
     }
 
     def doWithSpring = {
-        // TODO Implement runtime spring config (optional)
+        "${TransactionManagerPostProcessor.class.name}"(TransactionManagerPostProcessor) {
+            grailsApplication = ref('grailsApplication', true)
+        }
     }
 
     def doWithDynamicMethods = { ctx ->

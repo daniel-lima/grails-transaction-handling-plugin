@@ -4,7 +4,8 @@ import grails.util.GrailsNameUtils
 
 import java.lang.reflect.Modifier
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.commons.GrailsClass
 import org.springframework.context.ApplicationContext
@@ -14,12 +15,12 @@ import org.springframework.transaction.support.TransactionTemplate
 
 class GroovyDynamicMethods {
     
-    private final Logger log
+    private final Log log
     
-    public GroovyDynamicMethods(Logger log = null) {
+    public GroovyDynamicMethods(Log log = null) {
         this.log = log
         if (this.log == null) {
-            this.log = Logger.getLogger(this.class)
+            this.log = LogFactory.getLog(this.class)
         }
     }
     
@@ -57,7 +58,7 @@ class GroovyDynamicMethods {
         
         for (defaults in [withTrxDefaults, withNewTrxDefaults]) {
             Map programmaticDefaults = [:]
-            for (entry in pluginConfig.programmatic.defaults.entrySet()) {
+            for (entry in pluginConfig.programmatic.entrySet()) {
                 if (!defaults.containsKey(entry.key)) {
                     programmaticDefaults[entry.key] = entry.value
                 }

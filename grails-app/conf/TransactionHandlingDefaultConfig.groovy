@@ -1,23 +1,19 @@
+import org.springframework.transaction.TransactionDefinition
+
 grails {
     plugin {
         transactionHandling {
             global {
-                defaults {
-                    // timeout =
-                }
+               timeout = TransactionDefinition.TIMEOUT_DEFAULT
             }
             
             programmatic {
-                defaults {
-                    // isolation =
-                    // timeout =
-                    // readOnly =
-                }
+               // isolation =
+               // timeout =
+               // readOnly =
             }
             
             declarative {
-                defaults {
-                }
             }
         }
     }
