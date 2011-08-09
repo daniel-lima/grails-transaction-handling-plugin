@@ -1,4 +1,4 @@
-package transaction.handling
+package grails.plugin.transaction.handling
 
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -10,13 +10,9 @@ import grails.test.*
 
 
 class DynamicMethodsTests extends GroovyTestCase {
-    protected void setUp() {
-        super.setUp()
-    }
-
-    protected void tearDown() {
-        super.tearDown()
-    }
+    
+    def grailsApplication
+    private GroovyDynamicMethods dynamicMethods = new GroovyDynamicMethods()
 
     void testWithTransactionTemplate() {
 
@@ -70,7 +66,7 @@ class DynamicMethodsTests extends GroovyTestCase {
             assertEquals template.readOnly, false
         }
     }
-
+    
 
     void testWithNewTransactionTemplate() {
 
@@ -192,5 +188,89 @@ class DynamicMethodsTests extends GroovyTestCase {
         }
         
         assertEquals(size, TestUser.list().size())
+    }
+    
+    void testWithTransactionTemplateWithDefaults() {
+        try {
+            TransactionTemplate template = null
+
+            TransactionTemplate.metaClass.constructor = {PlatformTransactionManager trMgr ->
+                template = new TransactionTemplate()
+                template.transactionManager =  trMgr
+                template
+            }
+
+            TestUser.withTransaction {
+                println "template ${template}"
+                assertEquals template.propagationBehavior, TransactionDefinition.PROPAGATION_REQUIRED
+                assertEquals template.isolationLevel, TransactionDefinition.ISOLATION_DEFAULT
+                assertEquals template.timeout, TransactionDefinition.TIMEOUT_DEFAULT
+                assertEquals template.readOnly, false
+            }
+
+            
+            
+            pluginConfig.programmatic.defaults.timeout = 234
+            reloadDynamicMethods()
+
+            TestUser.withTransaction {
+                println "template ${template}"
+                assertEquals template.propagationBehavior, TransactionDefinition.PROPAGATION_REQUIRED
+                assertEquals template.isolationLevel, TransactionDefinition.ISOLATION_DEFAULT
+                assertEquals template.timeout, 234
+                assertEquals template.readOnly, false
+            }
+            
+            
+            
+            pluginConfig.programmatic.defaults.readOnly = true
+            pluginConfig.programmatic.defaults.isolation = 'readUncommitted'
+            reloadDynamicMethods()
+
+            TestUser.withTransaction {
+                println "template ${template}"
+                assertEquals template.propagationBehavior, TransactionDefinition.PROPAGATION_REQUIRED
+                assertEquals template.isolationLevel, TransactionDefinition.ISOLATION_READ_UNCOMMITTED
+                assertEquals template.timeout, 234
+                assertEquals template.readOnly, true
+            }
+            
+            
+            pluginConfig.programmatic.defaults.readOnly = false
+            pluginConfig.programmatic.defaults.propagation = 'supports'
+            pluginConfig.programmatic.defaults.propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
+            pluginConfig.programmatic.defaults.propagationBehaviorName = 'PROPAGATION_NEVER'
+            reloadDynamicMethods()
+            
+            TestUser.withTransaction {
+                println "template ${template}"
+                assertEquals template.propagationBehavior, TransactionDefinition.PROPAGATION_REQUIRED
+                assertEquals template.isolationLevel, TransactionDefinition.ISOLATION_READ_UNCOMMITTED
+                assertEquals template.timeout, 234
+                assertEquals template.readOnly, false
+            }
+            
+            
+            TestUser.withTransaction (propagation: 'mandatory', timeout: 987) {
+                println "template ${template}"
+                assertEquals template.propagationBehavior, TransactionDefinition.PROPAGATION_MANDATORY
+                assertEquals template.isolationLevel, TransactionDefinition.ISOLATION_READ_UNCOMMITTED
+                assertEquals template.timeout, 987
+                assertEquals template.readOnly, false
+            }
+            
+        } finally {
+            this.getPluginConfig(true)
+            this.reloadDynamicMethods()
+        }
+    }
+
+    
+    private void reloadDynamicMethods() {
+        this.dynamicMethods.doWith(grailsApplication.mainContext, grailsApplication)
+    }
+    
+    private Map getPluginConfig(boolean reload = false) {
+        return grailsApplication.getMergedConfig(reload).grails.plugin.transactionHandling.asMap(true)
     }
 }
