@@ -14,6 +14,7 @@
 * limitations under the License.
 */
 import grails.plugin.transaction.handling.GroovyDynamicMethods
+import grails.plugin.transaction.handling.MyBeanFactoryPostProcessor;
 import grails.plugin.transaction.handling.TransactionManagerPostProcessor
 
 import org.apache.commons.logging.Log
@@ -68,6 +69,7 @@ Possibly a backport of http://jira.grails.org/browse/GRAILS-7093.
         "${TransactionManagerPostProcessor.class.name}"(TransactionManagerPostProcessor) {
             grailsApplication = ref('grailsApplication', true)
         }
+        "${MyBeanFactoryPostProcessor.class.name}"(MyBeanFactoryPostProcessor)
     }
 
     def doWithDynamicMethods = { ctx ->
