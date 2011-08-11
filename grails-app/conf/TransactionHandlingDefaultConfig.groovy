@@ -4,7 +4,7 @@ grails {
     plugin {
         transactionHandling {
             global {
-               timeout = TransactionDefinition.TIMEOUT_DEFAULT
+               //timeout 
             }
             
             programmatic {
@@ -14,7 +14,19 @@ grails {
             }
             
             declarative {
-                timeout = 12
+               // isolation =
+               // timeout =
+               // readOnly =
+               // rollbackFor =
+               // noRollbackFor =
+            }
+            
+            implicit {
+               // isolation =
+               // timeout =
+               // readOnly =
+               // rollbackFor =
+               // noRollbackFor = 
             }
         }
     }

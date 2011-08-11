@@ -90,9 +90,10 @@ public class TransactionHandlingPostProcessor implements BeanPostProcessor, Bean
         this.grailsApplication = grailsApplication;
         Assert.notNull(this.grailsApplication);
 
-        this.timeout = (Integer) Eval
+        Integer timeout = (Integer) Eval
                 .x(this.grailsApplication,
-                        "x.mergedConfig.asMap(true).grails.plugin.transactionHandling.global.timeout");
+                        "x.mergedConfig.asMap(false).grails.plugin.transactionHandling.global.timeout");
+        this.timeout = timeout != null? timeout.intValue() : TransactionDefinition.TIMEOUT_DEFAULT;
     }
 
 }

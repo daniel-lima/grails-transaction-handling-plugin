@@ -12,6 +12,8 @@ import org.apache.commons.logging.LogFactory
 import org.codehaus.groovy.grails.commons.GrailsApplication;
 import org.codehaus.groovy.grails.plugins.support.aware.GrailsApplicationAware;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
+import org.springframework.transaction.interceptor.RollbackRuleAttribute;
+import org.springframework.transaction.interceptor.RuleBasedTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionAttribute
 import org.springframework.transaction.interceptor.TransactionAttributeSource
 import org.springframework.transaction.interceptor.TransactionInterceptor
@@ -71,7 +73,7 @@ public class ConfigurableTransactionInterceptor extends TransactionInterceptor i
             Map config = grailsApplication.mergedConfig.asMap(true).grails.plugin.transactionHandling.declarative
             if (config && !config.isEmpty()) {
                 configuredDefaults = txPropsUtil.expand(config)
-                defaults = new DefaultTransactionAttribute()                                  
+                defaults = new RuleBasedTransactionAttribute()                                  
             }
         }
         
