@@ -30,6 +30,6 @@ grails.project.dependency.resolution = {
     }
     
     plugins {
-        compile ':plugin-config:latest.integration'
+        compile ':plugin-config:0.1.4'
     }
 }

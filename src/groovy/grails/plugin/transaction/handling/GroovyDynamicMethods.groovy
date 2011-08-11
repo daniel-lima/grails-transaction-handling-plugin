@@ -13,45 +13,19 @@ import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.support.TransactionCallback
 import org.springframework.transaction.support.TransactionTemplate
 
+
 class GroovyDynamicMethods {
     
-    private final Log log
+    private final Log log = LogFactory.getLog(getClass())
+    private final TransactionPropertiesUtil txPropsUtil = new TransactionPropertiesUtil()
     
-    public GroovyDynamicMethods(Log log = null) {
-        this.log = log
-        if (this.log == null) {
-            this.log = LogFactory.getLog(this.class)
-        }
+    public GroovyDynamicMethods() {
     }
     
-    public void doWith(ApplicationContext ctx, GrailsApplication application, GrailsClass targetDomainClass = null) {
-        def constantModifier = Modifier.FINAL | Modifier.STATIC | Modifier.PUBLIC
-        /* [transactionTemplatePropertyAlias: [transactionDefinitionConstantAlias: [name: constantName, value: constantValue]]] */
-        Map constantMappings = [propagation: [:], isolation: [:], timeout: [:]]
-        Set constantPrefixes = new LinkedHashSet(constantMappings.keySet().collect {it.toUpperCase()})
-                
-        for (field in TransactionDefinition.class.fields) {
-            if ((field.modifiers & constantModifier) == constantModifier) {
-                for (prefix in constantPrefixes) {
-                    if (field.name.startsWith(prefix)) {
-                        def key = field.name.replace(prefix, '').replace('_', '-').toLowerCase()
-                        key = GrailsNameUtils.getPropertyNameForLowerCaseHyphenSeparatedName(key)
-                        constantMappings[prefix.toLowerCase()][key] = [name: field.name, value: field.get(null)]
-                    }
-                }
-            }
-        }
-
-        log.debug("constantMappings ${constantMappings}")
-        
+    public void doWith(ApplicationContext ctx, GrailsApplication application, GrailsClass targetDomainClass = null) {               
         Map pluginConfig = application.mergedConfig.asMap(true).grails.plugin.transactionHandling
         
-        log.debug("pluginConfig ${pluginConfig}")
-
-        /* [transactionTemplatePropertyAlias: [name: transactionTemplatePropertyName, value: transactionDefinitionConstantNameOrValue]] */
-        Map propertyMappings = [propagation: [name: 'propagationBehaviorName', value: 'name'],
-                                isolation: [name: 'isolationLevelName', value: 'name'],
-                                timeout: [name: 'timeout', value: 'value']]
+        log.debug("pluginConfig ${pluginConfig}")      
 
         Map withTrxDefaults = [propagation: 'required']
         Map withNewTrxDefaults = [propagation: 'requiresNew']
@@ -82,37 +56,8 @@ class GroovyDynamicMethods {
                 log.debug("transaction properties ${properties}")
             }
             
-            TransactionTemplate template = new TransactionTemplate(ctx.getBean('transactionManager'))
-            
-            for (prop in properties) {
-                String name = prop.key
-                Object value = prop.value
-                
-                Map propMapping = propertyMappings[name]
-
-                String newName = propMapping?.name
-                Object newValue = constantMappings[name]
-                
-                if (value != null && !(value instanceof CharSequence)) {
-                    // shortcut for non-text values
-                    newValue = null
-                }
-                
-                if (newValue != null && value != null) {
-                    newValue = newValue[value.toString()]
-                    if (newValue != null) { // Invalid property names produce null values
-                        newValue = newValue[propMapping?.value]
-                    }
-                }
-                
-                name = (newName != null)? newName : name
-                value = (newValue != null)? newValue: value
-
-                if (log.isDebugEnabled()) {
-                    log.debug("${name}=${value}")
-                }
-                template[name] = value
-            }
+            TransactionTemplate template = new TransactionTemplate(ctx.getBean('transactionManager'))            
+            txPropsUtil.applyTo properties, template
             
             template.execute(
                 {status ->

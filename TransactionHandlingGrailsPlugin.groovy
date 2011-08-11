@@ -14,8 +14,7 @@
 * limitations under the License.
 */
 import grails.plugin.transaction.handling.GroovyDynamicMethods
-import grails.plugin.transaction.handling.MyBeanFactoryPostProcessor;
-import grails.plugin.transaction.handling.TransactionManagerPostProcessor
+import grails.plugin.transaction.handling.TransactionHandlingPostProcessor
 
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
@@ -26,14 +25,14 @@ import org.apache.commons.logging.LogFactory
 class TransactionHandlingGrailsPlugin {
     
     private final Log log = LogFactory.getLog(getClass())
-    private final GroovyDynamicMethods dynamicMethods = new GroovyDynamicMethods(log)
+    private final GroovyDynamicMethods dynamicMethods = new GroovyDynamicMethods()
     
     // the plugin version
     def version = "0.1.2"
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "1.2.5 > *"
     // the other plugins this plugin depends on
-    def dependsOn = ['pluginConfig': '0.1.3 > *']
+    def dependsOn = ['pluginConfig': '0.1.0 > *']
     def loadAfter = ['hibernate']
     def observe = ['hibernate']
     // resources that are excluded from plugin packaging
@@ -66,10 +65,9 @@ Possibly a backport of http://jira.grails.org/browse/GRAILS-7093.
     }
 
     def doWithSpring = {
-        "${TransactionManagerPostProcessor.class.name}"(TransactionManagerPostProcessor) {
+        "${TransactionHandlingPostProcessor.class.name}"(TransactionHandlingPostProcessor) {
             grailsApplication = ref('grailsApplication', true)
         }
-        "${MyBeanFactoryPostProcessor.class.name}"(MyBeanFactoryPostProcessor)
     }
 
     def doWithDynamicMethods = { ctx ->

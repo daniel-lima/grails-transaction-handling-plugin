@@ -14,6 +14,7 @@ grails {
             }
             
             declarative {
+                timeout = 12
             }
         }
     }

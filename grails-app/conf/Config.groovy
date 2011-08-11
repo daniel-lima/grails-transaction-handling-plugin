@@ -22,5 +22,5 @@ log4j = {
 
     warn   'org.mortbay.log'
     
-    debug 'grails.plugin.transaction.handling.MyBeanFactoryPostProcessor', 'grails.plugin.transaction.handling.MyTransactionInterceptor'//, 'TransactionHandlingGrailsPlugin'
+    debug 'grails.plugin.transaction.handling.ConfigurableTransactionInterceptor'//, 'TransactionHandlingGrailsPlugin'
 }
