@@ -15,6 +15,16 @@ class TransactionPropertiesUtil {
     
     private final Log log = LogFactory.getLog(getClass())
     
+    public LinkedHashMap removePropagationProperties(Map properties) {
+        Map newProperties = new LinkedHashMap()
+        for (entry in properties.entrySet()) {
+            if (!entry.key.startsWith('propagation')) {
+               newProperties[entry.key] = entry.value 
+            }
+        }
+        return newProperties               
+    }
+    
     public void applyTo(Map properties, Object target) {
         Map rollbackMapping = [rollbackFor: RollbackRuleAttribute, noRollbackFor: NoRollbackRuleAttribute] 
         

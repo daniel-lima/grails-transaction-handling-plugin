@@ -85,4 +85,26 @@ class TransactionPropertiesUtilTests extends GrailsUnitTestCase {
         assertEquals(true, txDef.readOnly)
         assertEquals([new RollbackRuleAttribute(IllegalArgumentException), new NoRollbackRuleAttribute(IllegalStateException)], txDef.rollbackRules)        
     }
+    
+    
+    void testRemovePropagation() {
+        Map result = null
+        
+        result = txPropsUtil.removePropagationProperties([:])
+        assertNotNull result
+        assertTrue result.isEmpty()
+                
+        result = txPropsUtil.removePropagationProperties([propagation:'required'])
+        assertNotNull result
+        assertTrue result.isEmpty()
+        
+        result = txPropsUtil.removePropagationProperties([isolation:'default'])        
+        assertEquals([isolation:'default'], result)
+
+        result = txPropsUtil.removePropagationProperties([isolation:'default', propagationBehavior: TransactionDefinition.PROPAGATION_MANDATORY, timeout:12])
+        assertEquals([isolation:'default', timeout: 12], result)
+                
+        result = txPropsUtil.removePropagationProperties([isolationLevel: TransactionDefinition.ISOLATION_REPEATABLE_READ, propagationBehaviorName: 'PROPAGATION_MANDATORY', rollbackFor: [], noRollbackFor: []])
+        assertEquals([isolationLevel: TransactionDefinition.ISOLATION_REPEATABLE_READ, rollbackFor: [], noRollbackFor: []], result)        
+    }
 }

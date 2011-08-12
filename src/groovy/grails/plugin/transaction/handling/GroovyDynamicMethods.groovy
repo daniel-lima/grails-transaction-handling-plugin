@@ -30,16 +30,9 @@ class GroovyDynamicMethods {
         Map withTrxDefaults = [propagation: 'required']
         Map withNewTrxDefaults = [propagation: 'requiresNew']
         
-        for (defaults in [withTrxDefaults, withNewTrxDefaults]) {
-            Map programmaticDefaults = [:]
-            for (entry in pluginConfig.programmatic.entrySet()) {
-                if (!defaults.containsKey(entry.key)) {
-                    programmaticDefaults[entry.key] = entry.value
-                }
-            }
-            programmaticDefaults.putAll(defaults)
-            defaults.clear(); defaults.putAll(programmaticDefaults)
-        }
+        withTrxDefaults.putAll(txPropsUtil.removePropagationProperties(pluginConfig.programmatic))
+        withNewTrxDefaults.putAll(txPropsUtil.removePropagationProperties(pluginConfig.programmatic))
+
         log.debug("withTrxDefaults ${withTrxDefaults}")
         log.debug("withNewTrxDefaults ${withNewTrxDefaults}")
 
