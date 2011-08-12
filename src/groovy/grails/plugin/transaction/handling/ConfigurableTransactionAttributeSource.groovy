@@ -22,7 +22,7 @@ public class ConfigurableTransactionAttributeSource implements TransactionAttrib
     private final RuleBasedTransactionAttribute configuredDefaults;
     private final RuleBasedTransactionAttribute defaults;
 
-    public ConfigurableTransactionAttributeSource(TransactionAttributeSource source, Map config) {
+    public ConfigurableTransactionAttributeSource(TransactionAttributeSource source, Map config, boolean ignoreReadOnly = true) {
         this.source = source;
         Assert.notNull(this.source);
         Assert.notNull(config);
@@ -32,7 +32,9 @@ public class ConfigurableTransactionAttributeSource implements TransactionAttrib
             
             this.configuredDefaults = new RuleBasedTransactionAttribute();
             config = txPropsUtil.expand(config)
-            config = txPropsUtil.removeImmutableDefaults(config, 'readOnly')
+            if (ignoreReadOnly) {
+                config = txPropsUtil.removeImmutableDefaults(config, 'readOnly')
+            }
             txPropsUtil.applyTo config, configuredDefaults
             
             this.defaults = new RuleBasedTransactionAttribute();
@@ -59,10 +61,18 @@ public class ConfigurableTransactionAttributeSource implements TransactionAttrib
                     c = attClass.getConstructor(attClass)                    
                 } 
                 
-                if (c != null) {
+                if (c != null) {                    
+                    if (att.metaClass.hasProperty(att, 'rollbackRules')) {
+                        /* Workaround: new RuleBasedTransactionAttribute(RuleBasedTransactionAttribute) is broken for rollbackRules == null */
+                        att.rollbackRules
+                    } 
                     newAtt = c.newInstance(att)
                 } else {
-                    newAtt = BeanUtils.cloneBean(att)
+                    if (att != null) {
+                        newAtt = BeanUtils.cloneBean(att)
+                    } else {
+                        newAtt = new RuleBasedTransactionAttribute()
+                    }
                 }
                 if (log.isDebugEnabled()) {
                     log.debug("getTransactionAttribute(): newAtt ${newAtt}")
