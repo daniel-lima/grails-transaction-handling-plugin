@@ -13,12 +13,10 @@ import org.springframework.transaction.interceptor.TransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 
-@SuppressWarnings("serial")
 class ConfigurableTransactionInterceptor extends TransactionInterceptor
         implements GrailsApplicationAware {
 
     private final Log log = LogFactory.getLog(getClass());
-    @SuppressWarnings("rawtypes")
     private Map configuredDefaults = null;
 
     public ConfigurableTransactionInterceptor() {
@@ -61,7 +59,6 @@ class ConfigurableTransactionInterceptor extends TransactionInterceptor
         // log.debug('getTransactionAttributeSource(): End')
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     public void setGrailsApplication(GrailsApplication grailsApplication) {
         configuredDefaults = null;
