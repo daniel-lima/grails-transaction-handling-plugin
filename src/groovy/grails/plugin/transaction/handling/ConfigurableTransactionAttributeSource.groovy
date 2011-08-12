@@ -5,32 +5,41 @@ import java.lang.reflect.Method
 import java.util.IdentityHashMap
 import java.util.Map
 
+import org.apache.commons.beanutils.BeanUtils
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
-import org.springframework.transaction.interceptor.DefaultTransactionAttribute
 import org.springframework.transaction.interceptor.RuleBasedTransactionAttribute
 import org.springframework.transaction.interceptor.TransactionAttribute
 import org.springframework.transaction.interceptor.TransactionAttributeSource
 import org.springframework.util.Assert
 
 
-public class MyTransactionAttributeSource implements TransactionAttributeSource {
+public class ConfigurableTransactionAttributeSource implements TransactionAttributeSource {
 
     private final Log log = LogFactory.getLog(getClass());
     private final Map cache = new IdentityHashMap();
     protected final TransactionAttributeSource source;
-    private final Map configuredDefaults;
-    private final TransactionAttribute defaults;
+    private final RuleBasedTransactionAttribute configuredDefaults;
+    private final RuleBasedTransactionAttribute defaults;
 
-    public MyTransactionAttributeSource(TransactionAttributeSource source, Map configuredDefaults) {
+    public ConfigurableTransactionAttributeSource(TransactionAttributeSource source, Map config) {
         this.source = source;
         Assert.notNull(this.source);
-        this.configuredDefaults = configuredDefaults;
-        if (this.configuredDefaults != null) {
+        Assert.notNull(config);
+        
+        if (!config.isEmpty()) {
+            TransactionPropertiesUtil txPropsUtil = new TransactionPropertiesUtil();
+            
+            this.configuredDefaults = new RuleBasedTransactionAttribute();
+            config = txPropsUtil.expand(config)
+            config = txPropsUtil.removePropagationProperties(config)
+            txPropsUtil.applyTo config, configuredDefaults
+            
             this.defaults = new RuleBasedTransactionAttribute();
         } else {
+            this.configuredDefaults = null;
             this.defaults = null;
-        }
+        }        
     }
 
     @Override
@@ -44,23 +53,33 @@ public class MyTransactionAttributeSource implements TransactionAttributeSource 
         if (configuredDefaults != null) {
             TransactionAttribute newAtt = cache[att]
             if (newAtt == null) {
+                Constructor c = null
                 if (att != null) {
-                    Constructor c = att.getClass().getConstructor(att.getClass())
+                    Class attClass = att.getClass() 
+                    c = attClass.getConstructor(attClass)                    
+                } 
+                
+                if (c != null) {
                     newAtt = c.newInstance(att)
                 } else {
-                    newAtt = new DefaultTransactionAttribute()
+                    newAtt = BeanUtils.cloneBean(att)
                 }
-
-                for (entry in configuredDefaults.entrySet()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("getTransactionAttribute(): newAtt ${newAtt}")
+                }
+                
+                
+                for (key in BeanUtils.describe(configuredDefaults).keySet()) {
                     if (log.isDebugEnabled()) {
-                        log.debug("getTransactionAttribute(): key ${entry.key}")
+                        log.debug("getTransactionAttribute(): key ${key}")
                     }
+                    Object value = configuredDefaults[key]
 
-                    if (newAtt[entry.key] == defaults[entry.key] && entry.value != defaults[entry.key]) {
+                    if (value != null && value != defaults[key] && newAtt[key] == defaults[key]) {
                         if (log.isDebugEnabled()) {
-                            log.debug("getTransactionAttribute(): ${entry.key} = ${entry.value}")
+                            log.debug("getTransactionAttribute(): ${key} = ${value}")
                         }
-                        newAtt[entry.key] = entry.value
+                        newAtt[key] = value
                     }
                 }
             }

@@ -36,6 +36,7 @@ class ConfigurableTransactionInterceptorTests extends GroovyTestCase {
         assertEquals(TransactionAttribute.ISOLATION_DEFAULT, result.isolationLevel)
         assertEquals(TransactionAttribute.TIMEOUT_DEFAULT, result.timeout)
         assertEquals(false, result.readOnly)
+        assertSame(result, getAttribute('serviceMethod1', testAnnotatedService))
         
         
         result = getAttribute('serviceMethod2', testAnnotatedService)
@@ -43,6 +44,7 @@ class ConfigurableTransactionInterceptorTests extends GroovyTestCase {
         assertEquals(TransactionAttribute.ISOLATION_REPEATABLE_READ, result.isolationLevel)
         assertEquals(TransactionAttribute.TIMEOUT_DEFAULT, result.timeout)
         assertEquals(false, result.readOnly)
+        assertSame(result, getAttribute('serviceMethod2', testAnnotatedService))
         
         
         result = getAttribute('serviceMethod3', testAnnotatedService)
@@ -50,13 +52,14 @@ class ConfigurableTransactionInterceptorTests extends GroovyTestCase {
         assertEquals(TransactionAttribute.ISOLATION_DEFAULT, result.isolationLevel)
         assertEquals(123, result.timeout)
         assertEquals(false, result.readOnly)
+        assertSame(result, getAttribute('serviceMethod3', testAnnotatedService))
     }
     
     
     
     public void testGetAttributeDefaultConfig() {
-        //reloadTransactionInterceptor([propagation: 'requiresNew', timeout: 765, isolation: 'serializable', readOnly: true])                      
-        reloadTransactionInterceptor([propagation: 'requiresNew', timeout: 765, isolationLevel: TransactionAttribute.ISOLATION_SERIALIZABLE, readOnly: true])
+        reloadTransactionInterceptor([propagation: 'requiresNew', timeout: 765, isolation: 'serializable', readOnly: true])                      
+        //reloadTransactionInterceptor([propagation: 'requiresNew', timeout: 765, isolationLevel: TransactionAttribute.ISOLATION_SERIALIZABLE, readOnly: true])
         
         TransactionAttribute result = getAttribute('serviceMethod1', testAnnotatedService)
         assertNotNull result
@@ -64,6 +67,7 @@ class ConfigurableTransactionInterceptorTests extends GroovyTestCase {
         assertEquals(TransactionAttribute.ISOLATION_SERIALIZABLE, result.isolationLevel)
         assertEquals(765, result.timeout)
         assertEquals(true, result.readOnly)
+        assertSame(result, getAttribute('serviceMethod1', testAnnotatedService))
         
         
         result = getAttribute('serviceMethod2', testAnnotatedService)
@@ -71,6 +75,7 @@ class ConfigurableTransactionInterceptorTests extends GroovyTestCase {
         assertEquals(TransactionAttribute.ISOLATION_REPEATABLE_READ, result.isolationLevel)
         assertEquals(765, result.timeout)
         assertEquals(true, result.readOnly)
+        assertSame(result, getAttribute('serviceMethod2', testAnnotatedService))
         
         
         result = getAttribute('serviceMethod3', testAnnotatedService)
@@ -78,6 +83,7 @@ class ConfigurableTransactionInterceptorTests extends GroovyTestCase {
         assertEquals(TransactionAttribute.ISOLATION_SERIALIZABLE, result.isolationLevel)
         assertEquals(123, result.timeout)
         assertEquals(true, result.readOnly)
+        assertSame(result, getAttribute('serviceMethod3', testAnnotatedService))
     }
     
     
@@ -95,11 +101,8 @@ class ConfigurableTransactionInterceptorTests extends GroovyTestCase {
         for (c in cfg.entrySet()) {
             config[c.key] = c.value
         }
-        println getPluginConfig(false)
-        this.transactionInterceptor.grailsApplication = grailsApplication
-        def annotationTransactionAttributeSource = grailsApplication.mainContext.getBean(AnnotationTransactionAttributeSource)
-        assertNotNull(annotationTransactionAttributeSource)
-        this.transactionInterceptor.transactionAttributeSource = annotationTransactionAttributeSource
+        println getPluginConfig(false)        
+        this.transactionInterceptor.afterPropertiesSet()        
     }
     
     private Map getPluginConfig(boolean reload = false) {
