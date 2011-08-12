@@ -12,6 +12,7 @@ class TestAnnotatedServiceTests  extends GroovyTestCase  {
         testAnnotatedService.serviceMethod1()
         testAnnotatedService.serviceMethod2()
         testAnnotatedService.serviceMethod3()
+        testAnnotatedService.serviceMethod4()
     }
 
 }

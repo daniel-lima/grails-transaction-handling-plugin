@@ -15,11 +15,18 @@ class TransactionPropertiesUtil {
     
     private final Log log = LogFactory.getLog(getClass())
     
-    public LinkedHashMap removePropagationProperties(Map properties) {
-        Map newProperties = new LinkedHashMap()
-        for (entry in properties.entrySet()) {
-            if (!entry.key.startsWith('propagation')) {
-               newProperties[entry.key] = entry.value 
+    public LinkedHashMap removeImmutableDefaults(Map properties, String ... k) {
+        List keys = ['propagation']
+        if (k) {
+            keys.addAll(k as List)
+        }
+        
+        Map newProperties = new LinkedHashMap(properties)     
+        for (key in keys) {
+            for (entry in properties.entrySet()) {
+                if (entry.key.startsWith(key)) {
+                    newProperties.remove(entry.key)
+                }
             }
         }
         return newProperties               

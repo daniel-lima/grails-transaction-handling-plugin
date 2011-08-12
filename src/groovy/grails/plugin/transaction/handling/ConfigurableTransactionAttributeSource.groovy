@@ -32,7 +32,7 @@ public class ConfigurableTransactionAttributeSource implements TransactionAttrib
             
             this.configuredDefaults = new RuleBasedTransactionAttribute();
             config = txPropsUtil.expand(config)
-            config = txPropsUtil.removePropagationProperties(config)
+            config = txPropsUtil.removeImmutableDefaults(config, 'readOnly')
             txPropsUtil.applyTo config, configuredDefaults
             
             this.defaults = new RuleBasedTransactionAttribute();

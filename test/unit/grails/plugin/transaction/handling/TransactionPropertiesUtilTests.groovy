@@ -90,21 +90,21 @@ class TransactionPropertiesUtilTests extends GrailsUnitTestCase {
     void testRemovePropagation() {
         Map result = null
         
-        result = txPropsUtil.removePropagationProperties([:])
+        result = txPropsUtil.removeImmutableDefaults([:])
         assertNotNull result
         assertTrue result.isEmpty()
                 
-        result = txPropsUtil.removePropagationProperties([propagation:'required'])
+        result = txPropsUtil.removeImmutableDefaults([propagation:'required'])
         assertNotNull result
         assertTrue result.isEmpty()
         
-        result = txPropsUtil.removePropagationProperties([isolation:'default'])        
+        result = txPropsUtil.removeImmutableDefaults([isolation:'default'])        
         assertEquals([isolation:'default'], result)
 
-        result = txPropsUtil.removePropagationProperties([isolation:'default', propagationBehavior: TransactionDefinition.PROPAGATION_MANDATORY, timeout:12])
+        result = txPropsUtil.removeImmutableDefaults([isolation:'default', propagationBehavior: TransactionDefinition.PROPAGATION_MANDATORY, timeout:12])
         assertEquals([isolation:'default', timeout: 12], result)
                 
-        result = txPropsUtil.removePropagationProperties([isolationLevel: TransactionDefinition.ISOLATION_REPEATABLE_READ, propagationBehaviorName: 'PROPAGATION_MANDATORY', rollbackFor: [], noRollbackFor: []])
+        result = txPropsUtil.removeImmutableDefaults([isolationLevel: TransactionDefinition.ISOLATION_REPEATABLE_READ, propagationBehaviorName: 'PROPAGATION_MANDATORY', rollbackFor: [], noRollbackFor: []])
         assertEquals([isolationLevel: TransactionDefinition.ISOLATION_REPEATABLE_READ, rollbackFor: [], noRollbackFor: []], result)        
     }
 }

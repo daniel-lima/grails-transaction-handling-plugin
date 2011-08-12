@@ -19,4 +19,9 @@ class TestAnnotatedService {
     @Transactional(timeout = 123)
     def serviceMethod3() {
     }
+    
+    
+    @Transactional(rollbackFor = RuntimeException, readOnly = true)
+    def serviceMethod4() {
+    }
 }

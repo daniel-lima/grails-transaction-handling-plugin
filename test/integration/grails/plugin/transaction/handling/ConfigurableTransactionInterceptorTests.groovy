@@ -6,7 +6,10 @@ import java.lang.reflect.Method
 import java.util.Map
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
+import org.springframework.transaction.interceptor.NoRollbackRuleAttribute;
+import org.springframework.transaction.interceptor.RollbackRuleAttribute;
 import org.springframework.transaction.interceptor.TransactionAttribute
 import org.springframework.transaction.interceptor.TransactionAttributeSource
 
@@ -66,7 +69,8 @@ class ConfigurableTransactionInterceptorTests extends GroovyTestCase {
         assertEquals(TransactionAttribute.PROPAGATION_REQUIRED, result.propagationBehavior)
         assertEquals(TransactionAttribute.ISOLATION_SERIALIZABLE, result.isolationLevel)
         assertEquals(765, result.timeout)
-        assertEquals(true, result.readOnly)
+        assertEquals(false, result.readOnly)
+        assertTrue(result.rollbackRules == null || result.rollbackRules.isEmpty())
         assertSame(result, getAttribute('serviceMethod1', testAnnotatedService))
         
         
@@ -74,7 +78,8 @@ class ConfigurableTransactionInterceptorTests extends GroovyTestCase {
         assertEquals(TransactionAttribute.PROPAGATION_REQUIRED, result.propagationBehavior)
         assertEquals(TransactionAttribute.ISOLATION_REPEATABLE_READ, result.isolationLevel)
         assertEquals(765, result.timeout)
-        assertEquals(true, result.readOnly)
+        assertEquals(false, result.readOnly)
+        assertTrue(result.rollbackRules == null || result.rollbackRules.isEmpty())
         assertSame(result, getAttribute('serviceMethod2', testAnnotatedService))
         
         
@@ -82,8 +87,43 @@ class ConfigurableTransactionInterceptorTests extends GroovyTestCase {
         assertEquals(TransactionAttribute.PROPAGATION_REQUIRED, result.propagationBehavior)
         assertEquals(TransactionAttribute.ISOLATION_SERIALIZABLE, result.isolationLevel)
         assertEquals(123, result.timeout)
-        assertEquals(true, result.readOnly)
+        assertEquals(false, result.readOnly)
+        assertTrue(result.rollbackRules == null || result.rollbackRules.isEmpty())
         assertSame(result, getAttribute('serviceMethod3', testAnnotatedService))
+        
+        
+        result = getAttribute('serviceMethod4', testAnnotatedService)
+        assertEquals(TransactionAttribute.PROPAGATION_REQUIRED, result.propagationBehavior)
+        assertEquals(TransactionAttribute.ISOLATION_SERIALIZABLE, result.isolationLevel)
+        assertEquals(765, result.timeout)
+        assertEquals(true, result.readOnly)
+        assertEquals([new RollbackRuleAttribute(RuntimeException)], result.rollbackRules)
+        assertSame(result, getAttribute('serviceMethod4', testAnnotatedService))
+    }
+    
+    
+    public void testGetAttributeDefaultWitExceptionRules() {
+        reloadTransactionInterceptor([isolationLevel: TransactionDefinition.ISOLATION_READ_UNCOMMITTED, rollbackFor: [IllegalArgumentException], noRollbackFor: [IllegalStateException]])
+        
+        TransactionAttribute result = getAttribute('serviceMethod1', testAnnotatedService)
+        assertNotNull result
+        assertEquals(TransactionAttribute.PROPAGATION_REQUIRED, result.propagationBehavior)
+        assertEquals(TransactionAttribute.ISOLATION_READ_UNCOMMITTED, result.isolationLevel)
+        assertEquals(TransactionAttribute.TIMEOUT_DEFAULT, result.timeout)
+        assertEquals(false, result.readOnly)
+        assertEquals([new RollbackRuleAttribute(IllegalArgumentException), new NoRollbackRuleAttribute(IllegalStateException)], result.rollbackRules)
+        assertSame(result, getAttribute('serviceMethod1', testAnnotatedService))
+        
+        
+        result = getAttribute('serviceMethod4', testAnnotatedService)
+        assertNotNull result
+        assertEquals(TransactionAttribute.PROPAGATION_REQUIRED, result.propagationBehavior)
+        assertEquals(TransactionAttribute.ISOLATION_READ_UNCOMMITTED, result.isolationLevel)
+        assertEquals(TransactionAttribute.TIMEOUT_DEFAULT, result.timeout)
+        assertEquals(true, result.readOnly)
+        assertEquals([new RollbackRuleAttribute(RuntimeException)], result.rollbackRules)
+        assertSame(result, getAttribute('serviceMethod4', testAnnotatedService))
+        
     }
     
     

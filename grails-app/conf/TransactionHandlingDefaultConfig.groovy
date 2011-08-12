@@ -5,7 +5,7 @@ grails {
         transactionHandling {
             
             /* AbstractPlatformTransactionManager default settings. 
-               It affects any transaction started using a transaction manager. */            
+               It affects any transaction started through a transaction manager. */            
             global {
                //timeout 
             }
@@ -21,7 +21,6 @@ grails {
             declarative {
                // isolation =
                // timeout =
-               // readOnly =
                // rollbackFor =
                // noRollbackFor =
             }

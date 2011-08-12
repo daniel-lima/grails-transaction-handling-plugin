@@ -30,8 +30,8 @@ class GroovyDynamicMethods {
         Map withTrxDefaults = [propagation: 'required']
         Map withNewTrxDefaults = [propagation: 'requiresNew']
         
-        withTrxDefaults.putAll(txPropsUtil.removePropagationProperties(pluginConfig.programmatic))
-        withNewTrxDefaults.putAll(txPropsUtil.removePropagationProperties(pluginConfig.programmatic))
+        withTrxDefaults.putAll(txPropsUtil.removeImmutableDefaults(pluginConfig.programmatic))
+        withNewTrxDefaults.putAll(txPropsUtil.removeImmutableDefaults(pluginConfig.programmatic))
 
         log.debug("withTrxDefaults ${withTrxDefaults}")
         log.debug("withNewTrxDefaults ${withNewTrxDefaults}")
