@@ -34,6 +34,8 @@ public class ConfigurableTransactionAttributeSource implements TransactionAttrib
             config = txPropsUtil.expand(config)
             if (ignoreReadOnly) {
                 config = txPropsUtil.removeImmutableDefaults(config, 'readOnly')
+            } else {
+                config = txPropsUtil.removeImmutableDefaults(config)
             }
             txPropsUtil.applyTo config, configuredDefaults
             

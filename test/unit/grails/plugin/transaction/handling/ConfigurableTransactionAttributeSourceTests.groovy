@@ -4,6 +4,8 @@ import java.lang.reflect.Method;
 import java.util.Properties;
 
 import org.codehaus.groovy.grails.orm.support.GroovyAwareNamedTransactionAttributeSource;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.interceptor.RollbackRuleAttribute;
 import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionAttributeSource;
 
@@ -23,15 +25,54 @@ class ConfigurableTransactionAttributeSourceTests extends GrailsUnitTestCase {
     }
 
    
-    void testSomething() {
+    void testGetAttribute() {
         TransactionAttributeSource source = getSource()
         TransactionAttribute result = getAttribute(source, 'serviceMethod1', TestService.class)
         assertNotNull(result)
-        
+        assertEquals TransactionDefinition.PROPAGATION_REQUIRED, result.propagationBehavior
+        assertEquals TransactionDefinition.ISOLATION_DEFAULT, result.isolationLevel
+        assertEquals false, result.readOnly
+        assertSame result, getAttribute(source, 'serviceMethod1', TestService.class)
         
         source = getSource([isolation: 'readUncommitted'])
+        result = getAttribute(source, 'serviceMethod1', TestService.class)        
+        assertNotNull(result)
+        assertEquals TransactionDefinition.PROPAGATION_REQUIRED, result.propagationBehavior
+        assertEquals TransactionDefinition.ISOLATION_READ_UNCOMMITTED, result.isolationLevel
+        assertEquals false, result.readOnly
+        assertTrue result.rollbackRules == null || result.rollbackRules.isEmpty()
+        assertSame result, getAttribute(source, 'serviceMethod1', TestService.class)
+        
+        
+        result = getAttribute(source, 'serviceMethod3', TestService.class)
+        assertNotNull(result)
+        assertEquals TransactionDefinition.PROPAGATION_REQUIRED, result.propagationBehavior
+        assertEquals TransactionDefinition.ISOLATION_READ_UNCOMMITTED, result.isolationLevel
+        assertEquals false, result.readOnly
+        assertTrue result.rollbackRules == null || result.rollbackRules.isEmpty()
+        assertSame result, getAttribute(source, 'serviceMethod3', TestService.class)
+        
+        
+        source = getSource([propagation: 'requiresNew', readOnly: true])
         result = getAttribute(source, 'serviceMethod1', TestService.class)
         assertNotNull(result)
+        assertEquals TransactionDefinition.PROPAGATION_REQUIRED, result.propagationBehavior
+        assertEquals TransactionDefinition.ISOLATION_DEFAULT, result.isolationLevel
+        assertEquals true, result.readOnly
+        assertTrue result.rollbackRules == null || result.rollbackRules.isEmpty()
+        assertSame result, getAttribute(source, 'serviceMethod1', TestService.class)
+    }
+    
+    
+    void testGetAttributeWithRollbackRules() {
+        TransactionAttributeSource source = getSource([isolation: 'readUncommitted', rollbackFor: ['AException']])
+        result = getAttribute(source, 'serviceMethod1', TestService.class)        
+        assertNotNull(result)
+        assertEquals TransactionDefinition.PROPAGATION_REQUIRED, result.propagationBehavior
+        assertEquals TransactionDefinition.ISOLATION_READ_UNCOMMITTED, result.isolationLevel
+        assertEquals false, result.readOnly
+        assertEquals ([new RollbackRuleAttribute('AException')], result.rollbackRules)
+        assertSame result, getAttribute(source, 'serviceMethod1', TestService.class)            
     }
     
     

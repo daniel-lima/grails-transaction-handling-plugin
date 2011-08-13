@@ -127,7 +127,6 @@ class ConfigurableTransactionInterceptorTests extends GroovyTestCase {
     }
     
     
-    
     private TransactionAttribute getAttribute(String methodName, Object service) {
         TransactionAttributeSource attSource = transactionInterceptor.transactionAttributeSource
         Method m = service.class.getMethod(methodName)
