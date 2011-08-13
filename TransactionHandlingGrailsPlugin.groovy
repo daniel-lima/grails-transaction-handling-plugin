@@ -32,7 +32,7 @@ class TransactionHandlingGrailsPlugin {
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "1.2.5 > *"
     // the other plugins this plugin depends on
-    def dependsOn = ['pluginConfig': '0.1.0 > *']
+    def dependsOn = ['pluginConfig': '0.1.3 > *']
     def loadAfter = ['hibernate']
     def observe = ['hibernate']
     // resources that are excluded from plugin packaging

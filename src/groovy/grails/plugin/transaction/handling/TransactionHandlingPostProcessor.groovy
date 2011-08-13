@@ -89,7 +89,7 @@ public class TransactionHandlingPostProcessor implements BeanPostProcessor,
             ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
         /* Configure declarative transaction management. */
-        /* if (!this.declarativeConfig.isEmpty()) */{
+        /* if (!this.declarativeConfig.isEmpty()) */L: {
             String[] names = beanFactory.getBeanNamesForType(
                     TransactionInterceptor.class, true, false);
             log.debug("postProcessBeanFactory(): "
@@ -97,16 +97,16 @@ public class TransactionHandlingPostProcessor implements BeanPostProcessor,
                     + Arrays.asList(names));
 
             for (String name : names) {
-                BeanDefinition def = beanFactory.getBeanDefinition(name);
+                BeanDefinition defin = beanFactory.getBeanDefinition(name);
                 log.debug("postProcessBeanFactory(): old bean class "
-                        + def.getBeanClassName());
-                def.setBeanClassName(ConfigurableTransactionInterceptor.class
+                        + defin.getBeanClassName());
+                defin.setBeanClassName(ConfigurableTransactionInterceptor.class
                         .getName());
             }
         }
 
         /* Configure implicit transaction management. */
-        /* if (!this.implicitConfig.isEmpty()) */{
+        /* if (!this.implicitConfig.isEmpty()) */L2: {
             GrailsClass[] serviceClasses = grailsApplication
                     .getArtefacts(DefaultGrailsServiceClass.SERVICE);
 
@@ -122,16 +122,16 @@ public class TransactionHandlingPostProcessor implements BeanPostProcessor,
 
             for (GrailsClass grailsClass : serviceClasses) {
                 GrailsServiceClass serviceClass = (GrailsServiceClass) grailsClass;
-                BeanDefinition def = beanFactory.getBeanDefinition(serviceClass
+                BeanDefinition defin = beanFactory.getBeanDefinition(serviceClass
                         .getPropertyName());
                 if (log.isDebugEnabled()) {
                     log.debug("postProcessBeanFactory(): def.getBeanClassName() "
-                            + def.getBeanClassName());
+                            + defin.getBeanClassName());
                 }
                 
                 if (TypeSpecifyableTransactionProxyFactoryBean.class.getName()
-                        .equals(def.getBeanClassName())) {
-                    MutablePropertyValues propValues = def.getPropertyValues();
+                        .equals(defin.getBeanClassName())) {
+                    MutablePropertyValues propValues = defin.getPropertyValues();
 
                     if (log.isDebugEnabled()) {
                         log.debug("postProcessBeanFactory(): old transaction attribute source "

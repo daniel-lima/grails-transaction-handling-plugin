@@ -5,10 +5,9 @@ import java.util.Properties
 
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
-import org.aspectj.weaver.ResolvedType.SuperClassWalker;
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.plugins.support.aware.GrailsApplicationAware
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.InitializingBean
 import org.springframework.transaction.interceptor.TransactionAttributeSource
 import org.springframework.transaction.interceptor.TransactionInterceptor
 import org.springframework.util.Assert

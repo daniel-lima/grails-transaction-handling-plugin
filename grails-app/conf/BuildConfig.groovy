@@ -12,7 +12,9 @@ grails.project.dependency.resolution = {
     repositories {
         grailsPlugins()
         grailsHome()
-        grailsCentral()
+        if ("$grailsVersion" > "1.2.5") {
+            grailsCentral()
+        }
 
         // uncomment the below to enable remote dependency resolution
         // from public Maven repositories
@@ -29,7 +31,9 @@ grails.project.dependency.resolution = {
         // runtime 'mysql:mysql-connector-java:5.1.13'
     }
     
-    plugins {
-        compile ':plugin-config:[0.1.0,)'
+    if ("$grailsVersion" > "1.3.7") {
+        plugins {
+            compile ":plugin-config:[0.1.3,)"
+        }
     }
 }
