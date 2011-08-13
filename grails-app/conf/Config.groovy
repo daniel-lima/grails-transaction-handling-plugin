@@ -1,3 +1,5 @@
+import org.springframework.transaction.TransactionDefinition;
+
 // configuration for plugin testing - will not be included in the plugin zip
  
 log4j = {
@@ -23,4 +25,18 @@ log4j = {
     warn   'org.mortbay.log'
     
     debug 'grails.plugin.transaction.handling'//, 'TransactionHandlingGrailsPlugin'
+}
+
+grails {
+    plugin {
+        transactionHandling {
+            declarative {
+                isolationLevel = TransactionDefinition.ISOLATION_DEFAULT
+            }
+            
+            implicit {
+                isolationLevel = TransactionDefinition.ISOLATION_DEFAULT
+            }
+        }
+    }
 }

@@ -52,7 +52,7 @@ public class TransactionHandlingPostProcessor implements BeanPostProcessor,
 
         if (bean != null && bean instanceof PlatformTransactionManager) {
             if (bean instanceof AbstractPlatformTransactionManager) {
-                /* Configure transaction manager. */
+                /* Configure global transaction management. */
                 AbstractPlatformTransactionManager tm = (AbstractPlatformTransactionManager) bean;
 
                 if (log.isDebugEnabled()) {
@@ -89,7 +89,7 @@ public class TransactionHandlingPostProcessor implements BeanPostProcessor,
             ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
         /* Configure declarative transaction management. */
-        /* if (!this.declarativeConfig.isEmpty()) */L: {
+        if (!this.declarativeConfig.isEmpty()) {
             String[] names = beanFactory.getBeanNamesForType(
                     TransactionInterceptor.class, true, false);
             log.debug("postProcessBeanFactory(): "
@@ -106,7 +106,7 @@ public class TransactionHandlingPostProcessor implements BeanPostProcessor,
         }
 
         /* Configure implicit transaction management. */
-        /* if (!this.implicitConfig.isEmpty()) */L2: {
+        if (!this.implicitConfig.isEmpty()) {
             GrailsClass[] serviceClasses = grailsApplication
                     .getArtefacts(DefaultGrailsServiceClass.SERVICE);
 
@@ -153,7 +153,7 @@ public class TransactionHandlingPostProcessor implements BeanPostProcessor,
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    //@SuppressWarnings("unchecked")
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(this.grailsApplication);
 

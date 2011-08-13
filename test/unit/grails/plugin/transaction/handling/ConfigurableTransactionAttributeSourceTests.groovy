@@ -15,6 +15,7 @@ class ConfigurableTransactionAttributeSourceTests extends GrailsUnitTestCase {
     
     private GroovyAwareNamedTransactionAttributeSource parentSource
     
+    @Override
     protected void setUp() {
         super.setUp()
         
@@ -23,6 +24,13 @@ class ConfigurableTransactionAttributeSourceTests extends GrailsUnitTestCase {
         parentSource = new GroovyAwareNamedTransactionAttributeSource();
         parentSource.setProperties(props);
     }
+    
+    @Override
+    protected void tearDown() throws Exception {
+       
+        super.tearDown();
+    }
+
 
    
     void testGetAttribute() {
@@ -61,12 +69,22 @@ class ConfigurableTransactionAttributeSourceTests extends GrailsUnitTestCase {
         assertEquals true, result.readOnly
         assertTrue result.rollbackRules == null || result.rollbackRules.isEmpty()
         assertSame result, getAttribute(source, 'serviceMethod1', TestService.class)
+        
+        
+        source = getSource([isolationLevel: TransactionDefinition.ISOLATION_READ_UNCOMMITTED, readOnly: true])
+        result = getAttribute(source, 'serviceMethod1', TestService.class)
+        assertNotNull(result)
+        assertEquals TransactionDefinition.PROPAGATION_REQUIRED, result.propagationBehavior
+        assertEquals TransactionDefinition.ISOLATION_READ_UNCOMMITTED, result.isolationLevel
+        assertEquals true, result.readOnly
+        assertTrue result.rollbackRules == null || result.rollbackRules.isEmpty()
+        assertSame result, getAttribute(source, 'serviceMethod1', TestService.class)
     }
     
     
     void testGetAttributeWithRollbackRules() {
         TransactionAttributeSource source = getSource([isolation: 'readUncommitted', rollbackFor: ['AException']])
-        result = getAttribute(source, 'serviceMethod1', TestService.class)        
+        TransactionAttribute result = getAttribute(source, 'serviceMethod1', TestService.class)        
         assertNotNull(result)
         assertEquals TransactionDefinition.PROPAGATION_REQUIRED, result.propagationBehavior
         assertEquals TransactionDefinition.ISOLATION_READ_UNCOMMITTED, result.isolationLevel

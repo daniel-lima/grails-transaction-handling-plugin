@@ -5,6 +5,7 @@ import grails.test.*
 import java.lang.reflect.Method
 import java.util.Map
 
+import org.codehaus.groovy.grails.commons.ConfigurationHolder;
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
@@ -28,10 +29,21 @@ class ConfigurableTransactionInterceptorTests extends GroovyTestCase {
         assertNotNull(transactionInterceptor)
         getPluginConfig true
         this.transactionInterceptor.grailsApplication = grailsApplication
-        reloadTransactionInterceptor()  
-    }    
+        reloadTransactionInterceptor()
+    } 
+    
+    
      
     
+    @Override
+    protected void tearDown() throws Exception {
+        getPluginConfig true
+        reloadTransactionInterceptor()
+        super.tearDown();
+    }
+
+
+
     public void testGetAttribute() {        
         TransactionAttribute result = getAttribute('serviceMethod1', testAnnotatedService)
         assertNotNull result
@@ -145,6 +157,7 @@ class ConfigurableTransactionInterceptorTests extends GroovyTestCase {
     }
     
     private Map getPluginConfig(boolean reload = false) {
+        ConfigurationHolder.config = null
         return grailsApplication.getMergedConfig(reload).grails.plugin.transactionHandling.asMap(true)
     }
 }
